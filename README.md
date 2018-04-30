@@ -16,4 +16,7 @@ A simple memory matching game implemented using Unity Game Engine.
 
 ### Image and Demo
 
-- Coming soon
+- [Demo](https://khvic.github.io/Match-Pairs-Memory-Game-With-Animation/index.html)
+
+![](images/startscreen.PNG?raw=true)
+![](images/game.PNG?raw=true)
