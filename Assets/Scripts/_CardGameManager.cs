@@ -8,13 +8,16 @@ public class _CardGameManager : MonoBehaviour
 
     public static _CardGameManager Instance;
     public static int gameSize = 2;
+    // gameobject instance
     [SerializeField]
     private GameObject prefab;
+    // parent object of cards
     [SerializeField]
     private GameObject cardList;
+    // sprite for card back
     [SerializeField]
     private Sprite cardBack;
-    // all possible sprite
+    // all possible sprite for card front
     [SerializeField]
     private Sprite[] sprites;
     // list of card
@@ -25,8 +28,10 @@ public class _CardGameManager : MonoBehaviour
     private GameObject panel;
     [SerializeField]
     private GameObject info;
+    // for preloading
     [SerializeField]
     private _Card spritePreload;
+    // other UI
     [SerializeField]
     private Text sizeLabel;
     [SerializeField]
@@ -46,39 +51,48 @@ public class _CardGameManager : MonoBehaviour
     }
     void Start()
     {
-        //the purpose is to allow preloading of panel, so that it does not lag when it loads
         gameStart = false;
         panel.SetActive(false);
     }
+    // Purpose is to allow preloading of panel, so that it does not lag when it loads
+    // Call this in the start method to preload all sprites at start of the script
     private void PreloadCardImage()
     {
         for (int i = 0; i < sprites.Length; i++)
             spritePreload.SpriteID = i;
         spritePreload.gameObject.SetActive(false);
     }
+    // Start a game
     public void StartCardGame()
     {
-        if (gameStart) return;
+        if (gameStart) return; // return if game already running
         gameStart = true;
+        // toggle UI
         panel.SetActive(true);
         info.SetActive(false);
+        // set cards, size, position
         SetGamePanel();
+        // renew gameplay variables
         cardSelected = spriteSelected = -1;
         cardLeft = cards.Length;
+        // allocate sprite to card
         SpriteCardAllocation();
         StartCoroutine(HideFace());
         time = 0;
     }
-    private void SetGamePanel(){
 
+    // Initialize cards, size, and position based on size of game
+    private void SetGamePanel(){
+        // if game is odd, we should have 1 card less
         int isOdd = gameSize % 2 ;
 
         cards = new _Card[gameSize * gameSize - isOdd];
+        // remove all gameobject from parent
         foreach (Transform child in cardList.transform)
         {
             GameObject.Destroy(child.gameObject);
         }
-
+        // calculate position between each card & start position of each card based on the Panel
         RectTransform panelsize = panel.transform.GetComponent(typeof(RectTransform)) as RectTransform;
         float row_size = panelsize.sizeDelta.x;
         float col_size = panelsize.sizeDelta.y;
@@ -93,12 +107,15 @@ public class _CardGameManager : MonoBehaviour
             curY += yInc / 2;
         }
         float initialX = curX;
+        // for each in y-axis
         for (int i = 0; i < gameSize; i++)
         {
             curX = initialX;
+            // for each in x-axis
             for (int j = 0; j < gameSize; j++)
             {
                 GameObject c;
+                // if is the last card and game is odd, we instead move the middle card on the panel to last spot
                 if (isOdd == 1 && i == (gameSize - 1) && j == (gameSize - 1))
                 {
                     int index = gameSize / 2 * gameSize + gameSize / 2;
@@ -108,16 +125,16 @@ public class _CardGameManager : MonoBehaviour
                 {
                     // create card prefab
                     c = Instantiate(prefab);
-                    //assign parent
+                    // assign parent
                     c.transform.parent = cardList.transform;
 
                     int index = i * gameSize + j;
                     cards[index] = c.GetComponent<_Card>();
                     cards[index].ID = index;
-                    //modify its size
+                    // modify its size
                     c.transform.localScale = new Vector3(scale, scale);
                 }
-                //assign location
+                // assign location
                 c.transform.localPosition = new Vector3(curX, curY, 0);
                 curX += xInc;
 
@@ -126,12 +143,13 @@ public class _CardGameManager : MonoBehaviour
         }
 
     }
+    // reset face-down rotation of all cards
     void ResetFace()
     {
         for (int i = 0; i < gameSize; i++)
             cards[i].ResetRotation();
     }
-
+    // Flip all cards after a short period
     IEnumerator HideFace()
     {
         //display for a short moment before flipping
@@ -140,17 +158,18 @@ public class _CardGameManager : MonoBehaviour
             cards[i].Flip();
         yield return new WaitForSeconds(0.5f);
     }
-
+    // Allocate pairs of sprite to card instances
     private void SpriteCardAllocation()
     {
         int i, j;
         int[] selectedID = new int[cards.Length / 2];
-        //sprite selection
+        // sprite selection
         for (i = 0; i < cards.Length/2; i++)
         {
-            //get a random sprite
+            // get a random sprite
             int value = Random.Range(0, sprites.Length - 1);
-            //check previous number has not been selection
+            // check previous number has not been selection
+            // if the number of cards is larger than number of sprites, it will reuse some sprites
             for (j = i; j > 0; j--)
             {
                 if (selectedID[j - 1] == value)
@@ -159,14 +178,14 @@ public class _CardGameManager : MonoBehaviour
             selectedID[i] = value;
         }
 
-        //card sprite deallocation
+        // card sprite deallocation
         for (i = 0; i < cards.Length; i++)
         {
             cards[i].Active();
             cards[i].SpriteID = -1;
             cards[i].ResetRotation();
         }
-        //card sprite allocation
+        // card sprite pairing allocation
         for (i = 0; i < cards.Length / 2; i++)
             for (j = 0; j < 2; j++)
             {
@@ -178,34 +197,39 @@ public class _CardGameManager : MonoBehaviour
             }
 
     }
+    // Slider update gameSize
     public void SetGameSize() {
         gameSize = (int)sizeSlider.value;
         sizeLabel.text = gameSize + " X " + gameSize;
     }
+    // return Sprite based on its id
     public Sprite GetSprite(int spriteId)
     {
         return sprites[spriteId];
     }
+    // return card back Sprite
     public Sprite CardBack()
     {
         return cardBack;
     }
+    // check if clickable
     public bool canClick()
     {
         if (!gameStart)
             return false;
         return true;
     }
+    // card onclick event
     public void cardClicked(int spriteId, int cardId)
     {
-        //first selection
+        // first card selected
         if (spriteSelected == -1)
         {
             spriteSelected = spriteId;
             cardSelected = cardId;
         }
         else
-        {
+        { // second card selected
             if (spriteSelected == spriteId)
             {
                 //correctly matched
@@ -216,22 +240,24 @@ public class _CardGameManager : MonoBehaviour
             }
             else
             {
-                //incorrectly matched
+                // incorrectly matched
                 cards[cardSelected].Flip();
                 cards[cardId].Flip();
             }
             cardSelected = spriteSelected = -1;
         }
     }
+    // check if game is completed
     private void CheckGameWin()
     {
-        //win game
+        // win game
         if (cardLeft == 0)
         {
             EndGame();
             AudioPlayer.Instance.PlayAudio(1);
         }
     }
+    // stop game
     private void EndGame()
     {
         gameStart = false;
@@ -245,6 +271,7 @@ public class _CardGameManager : MonoBehaviour
     {
         info.SetActive(i);
     }
+    // track elasped time
     private void Update(){
         if (gameStart) {
             time += Time.deltaTime;

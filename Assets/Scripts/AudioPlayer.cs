@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// class to play audio
 public class AudioPlayer : MonoBehaviour
 {
-
     public static AudioPlayer Instance;
-    public AudioSource audioSource;
+    [SerializeField]
+    private AudioSource audioSource;
     [SerializeField]
     private AudioClip[] audio;
 
