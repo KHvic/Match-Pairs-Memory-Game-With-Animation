@@ -1,0 +1,9 @@
+{
+"TOTAL_MEMORY": 268435456,
+"dataUrl": "Cards3D.data.unityweb",
+"asmCodeUrl": "Cards3D.asm.code.unityweb",
+"asmMemoryUrl": "Cards3D.asm.memory.unityweb",
+"asmFrameworkUrl": "Cards3D.asm.framework.unityweb",
+"splashScreenStyle": "Dark",
+"backgroundColor": "#231F20"
+}
